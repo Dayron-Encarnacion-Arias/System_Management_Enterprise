@@ -1,4 +1,6 @@
-﻿namespace SistemaGestionEmpresarial
+﻿using SistemaGestionEmpresarial.Modelos;
+
+namespace SistemaGestionEmpresarial
 {
     public static class SesionGlobal
     {

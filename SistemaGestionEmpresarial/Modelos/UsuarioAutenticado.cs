@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SistemaGestionEmpresarial
+namespace SistemaGestionEmpresarial.Modelos
 {
     public class UsuarioAutenticado
     {

@@ -49,24 +49,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConexionBD.cs" />
-    <Compile Include="FrmLogin.cs">
+    <Compile Include="Data\ConexionBD.cs" />
+    <Compile Include="Formularios\FrmClientes.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmLogin.Designer.cs">
+    <Compile Include="Formularios\FrmClientes.Designer.cs">
+      <DependentUpon>FrmClientes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Formularios\FrmLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formularios\FrmLogin.Designer.cs">
       <DependentUpon>FrmLogin.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrmMenuPrincipal.cs">
+    <Compile Include="Formularios\FrmMDIPrincipal.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmMenuPrincipal.Designer.cs">
-      <DependentUpon>FrmMenuPrincipal.cs</DependentUpon>
+    <Compile Include="Formularios\FrmMDIPrincipal.Designer.cs">
+      <DependentUpon>FrmMDIPrincipal.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Formularios\FrmProductos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formularios\FrmProductos.Designer.cs">
+      <DependentUpon>FrmProductos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Formularios\FrmReporte.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formularios\FrmReporte.Designer.cs">
+      <DependentUpon>FrmReporte.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServicioAutenticacion.cs" />
+    <Compile Include="Servicios\ServicioAutenticacion.cs" />
     <Compile Include="SesionGlobal.cs" />
-    <Compile Include="UsuarioAutenticado.cs" />
+    <Compile Include="Modelos\UsuarioAutenticado.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

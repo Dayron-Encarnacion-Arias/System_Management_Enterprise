@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using SistemaGestionEmpresarial.Data;
+using SistemaGestionEmpresarial.Modelos;
 
 namespace SistemaGestionEmpresarial.Servicios
 {

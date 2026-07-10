@@ -2,7 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 
-namespace SistemaGestionEmpresarial
+namespace SistemaGestionEmpresarial.Data
 {
     public class ConexionBD
     {
