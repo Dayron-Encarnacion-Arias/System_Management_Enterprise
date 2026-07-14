@@ -142,14 +142,37 @@ namespace SistemaGestionEmpresarial.Formularios
 
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            if (idSeleccionado == 0) { MessageBox.Show("Seleccione un producto."); return; }
-            if (MessageBox.Show("¿Eliminar el producto seleccionado?", "Confirmar",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            if (idSeleccionado == 0)
+            { MessageBox.Show("Seleccione un producto primero. 👆"); return; }
+
+            if (MessageBox.Show("¿Eliminar el producto seleccionado?\n(Se marcará como Inactivo)",
+                "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                SqlParameter[] p = { new SqlParameter("@IdProducto", idSeleccionado) };
-                db.EjecutarProcedimiento("sp_EliminarProducto", p);
-                MessageBox.Show("Producto eliminado.", "Éxito");
-                LimpiarCampos(); CargarDatos();
+                try
+                {
+                    using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(
+                        "Server=.;Database=GestionEmpresarial;Integrated Security=true;"))
+                    {
+                        conn.Open();
+                        using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(
+                            "UPDATE Productos SET Estado = 'Inactivo' WHERE IdProducto = @Id", conn))
+                        {
+                            cmd.Parameters.AddWithValue("@Id", idSeleccionado);
+                            int filas = cmd.ExecuteNonQuery();
+                            if (filas > 0)
+                            {
+                                MessageBox.Show("✅ Producto eliminado correctamente.", "Éxito",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                LimpiarCampos();
+                                CargarDatos();
+                            }
+                            else
+                                MessageBox.Show("No se encontró el producto.", "Aviso");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                { MessageBox.Show("Error al eliminar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
             }
         }
 

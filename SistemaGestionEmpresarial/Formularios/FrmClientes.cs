@@ -140,21 +140,43 @@ namespace SistemaGestionEmpresarial.Formularios
         // ── ELIMINAR ──────────────────────────────────────────
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            if (idSeleccionado == 0) { MessageBox.Show("Seleccione un cliente.", "Aviso"); return; }
-            if (!puedeEliminar) { MessageBox.Show("No tiene permiso para eliminar.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+            if (idSeleccionado == 0)
+            { MessageBox.Show("Seleccione un cliente primero. 👆"); return; }
 
-            if (MessageBox.Show($"¿Eliminar al cliente seleccionado?\n(Se marcará como Inactivo)",
+            if (!puedeEliminar)
+            {
+                MessageBox.Show("No tiene permiso para eliminar. 🔒", "Acceso Denegado",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning); return;
+            }
+
+            if (MessageBox.Show("¿Eliminar al cliente seleccionado?\n(Se marcará como Inactivo)",
                 "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
                 try
                 {
-                    SqlParameter[] p = { new SqlParameter("@IdCliente", idSeleccionado) };
-                    db.EjecutarProcedimiento("sp_EliminarCliente", p);
-                    MessageBox.Show("Cliente eliminado.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LimpiarCampos();
-                    CargarDatos();
+                    using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(
+                        "Server=.;Database=GestionEmpresarial;Integrated Security=true;"))
+                    {
+                        conn.Open();
+                        using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(
+                            "UPDATE Clientes SET Estado = 'Inactivo' WHERE IdCliente = @Id", conn))
+                        {
+                            cmd.Parameters.AddWithValue("@Id", idSeleccionado);
+                            int filas = cmd.ExecuteNonQuery();
+                            if (filas > 0)
+                            {
+                                MessageBox.Show("✅ Cliente eliminado correctamente.", "Éxito",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                LimpiarCampos();
+                                CargarDatos();
+                            }
+                            else
+                                MessageBox.Show("No se encontró el cliente.", "Aviso");
+                        }
+                    }
                 }
-                catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
+                catch (Exception ex)
+                { MessageBox.Show("Error al eliminar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
             }
         }
 
