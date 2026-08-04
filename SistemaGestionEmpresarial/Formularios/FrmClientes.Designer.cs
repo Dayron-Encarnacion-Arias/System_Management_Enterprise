@@ -80,7 +80,8 @@
             this.panelIzq.Width = 295;
 
             this.panelFormCard.BackColor = System.Drawing.Color.FromArgb(28, 28, 28);
-            this.panelFormCard.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelFormCard.Location = new System.Drawing.Point(10, 10);
+            this.panelFormCard.Size = new System.Drawing.Size(272, 490);
             this.panelFormCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 
             this.lblCardTitle.Text = "✏️  Datos del Cliente";
@@ -137,8 +138,8 @@
 
             // Botones
             this.panelBotones.BackColor = System.Drawing.Color.FromArgb(20, 20, 20);
-            this.panelBotones.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBotones.Height = 50;
+            this.panelBotones.Location = new System.Drawing.Point(10, 508);
+            this.panelBotones.Size = new System.Drawing.Size(272, 50);
 
             void estBtn(System.Windows.Forms.Button b, string txt, int bx, int bw,
                         System.Drawing.Color bg, System.EventHandler click)

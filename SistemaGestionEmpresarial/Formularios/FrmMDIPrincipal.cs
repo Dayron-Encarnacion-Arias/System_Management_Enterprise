@@ -18,24 +18,30 @@ namespace SistemaGestionEmpresarial
         {
             if (!SesionGlobal.HayUsuarioAutenticado()) { this.Close(); return; }
 
-            lblUsuarioActual.Text = $"💜  {SesionGlobal.UsuarioActual.Nombre}   |   Rol: {SesionGlobal.UsuarioActual.NombreRol}";
+            lblUsuarioActual.Text = $"💼  {SesionGlobal.UsuarioActual.Nombre}   |   Rol: {SesionGlobal.UsuarioActual.NombreRol}";
             ConfigurarMenuPorRol();
 
-            // Reloj en tiempo real
             timerReloj = new Timer();
             timerReloj.Interval = 1000;
             timerReloj.Tick += (s, ev) =>
-                lblFechaHora.Text = $"📅  {DateTime.Now:dddd, dd/MM/yyyy   🕐  HH:mm:ss}   ";
+                lblFechaHora.Text = $"📅  {DateTime.Now:dddd, dd/MM/yyyy}   🕐  {DateTime.Now:HH:mm:ss}   ";
             timerReloj.Start();
+
+            // Abrir dashboard al iniciar
+            AbrirFormulario(new FrmDashboard());
         }
 
         private void ConfigurarMenuPorRol()
         {
             bool esAdmin = SesionGlobal.UsuarioActual.NombreRol == "Administrador";
             usuariosToolStripMenuItem.Visible = esAdmin;
+            bitacoraToolStripMenuItem.Visible = esAdmin;
         }
 
         // ── MANTENIMIENTOS ────────────────────────────────────
+        private void dashboardToolStripMenuItem_Click(object sender, EventArgs e)
+            => AbrirFormulario(new FrmDashboard());
+
         private void clientesToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmClientes());
 
@@ -43,10 +49,7 @@ namespace SistemaGestionEmpresarial
             => AbrirFormulario(new FrmProductos());
 
         private void usuariosToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Módulo de Usuarios en construcción. 🌸", "Próximamente",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+            => AbrirFormulario(new FrmUsuarios());
 
         // ── REPORTES ──────────────────────────────────────────
         private void reporteClientesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -54,6 +57,9 @@ namespace SistemaGestionEmpresarial
 
         private void reporteProductosToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmReporte("Productos"));
+
+        private void bitacoraToolStripMenuItem_Click(object sender, EventArgs e)
+            => AbrirFormulario(new FrmBitacora());
 
         // ── VENTANA ───────────────────────────────────────────
         private void cascadaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -108,12 +114,13 @@ namespace SistemaGestionEmpresarial
         // ── SESIÓN ────────────────────────────────────────────
         private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("¿Desea cerrar sesión? 💜", "Confirmar",
+            if (MessageBox.Show("¿Desea cerrar sesión?", "Confirmar",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 timerReloj?.Stop();
                 SesionGlobal.CerrarSesion();
-                new FrmLogin().Show();
+                FrmLogin login = new FrmLogin();
+                login.Show();
                 this.Close();
             }
         }

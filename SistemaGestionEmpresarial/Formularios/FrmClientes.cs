@@ -11,9 +11,9 @@ namespace SistemaGestionEmpresarial.Formularios
         private ConexionBD db = new ConexionBD();
         private int idSeleccionado = 0;
         private bool modoEdicion = false;
-
-        // Permisos según rol
         private bool puedeAgregar, puedeModificar, puedeEliminar;
+
+        private const string PLACEHOLDER = "Buscar...";
 
         public FrmClientes()
         {
@@ -25,33 +25,38 @@ namespace SistemaGestionEmpresarial.Formularios
             ConfigurarPermisos();
             CargarDatos();
             LimpiarCampos();
-
-            txtBuscar.Text = "Buscar...";
-            txtBuscar.ForeColor = System.Drawing.Color.Gray;
-            txtBuscar.GotFocus += (s, ev) => { if (txtBuscar.Text == "Buscar...") { txtBuscar.Text = ""; txtBuscar.ForeColor = System.Drawing.Color.Black; } };
-            txtBuscar.LostFocus += (s, ev) => { if (txtBuscar.Text == "") { txtBuscar.Text = "Buscar..."; txtBuscar.ForeColor = System.Drawing.Color.Gray; } };
+            ConfigurarPlaceholder();
         }
 
-        // ── PERMISOS ───────────────────────────────────────────
+        private void ConfigurarPlaceholder()
+        {
+            txtBuscar.Text = PLACEHOLDER;
+            txtBuscar.ForeColor = System.Drawing.Color.FromArgb(100, 100, 100);
+            txtBuscar.GotFocus += (s, ev) => {
+                if (txtBuscar.Text == PLACEHOLDER) { txtBuscar.Text = ""; txtBuscar.ForeColor = System.Drawing.Color.White; }
+            };
+            txtBuscar.LostFocus += (s, ev) => {
+                if (string.IsNullOrWhiteSpace(txtBuscar.Text)) { txtBuscar.Text = PLACEHOLDER; txtBuscar.ForeColor = System.Drawing.Color.FromArgb(100, 100, 100); }
+            };
+        }
+
         private void ConfigurarPermisos()
         {
             string rol = SesionGlobal.UsuarioActual?.NombreRol ?? "";
             puedeAgregar = rol == "Administrador" || rol == "Ejecutor";
             puedeModificar = rol == "Administrador" || rol == "Supervisor";
             puedeEliminar = rol == "Administrador";
-
             btnGuardar.Enabled = puedeAgregar || puedeModificar;
             btnEliminar.Enabled = puedeEliminar;
         }
 
-        // ── CARGAR / BUSCAR ────────────────────────────────────
         private void CargarDatos(string busqueda = "", string estado = "Todos")
         {
             try
             {
                 SqlParameter[] p = {
                     new SqlParameter("@Busqueda", busqueda),
-                    new SqlParameter("@Estado", estado)
+                    new SqlParameter("@Estado",   estado)
                 };
                 DataTable dt = db.EjecutarProcedimiento("sp_BuscarClientes", p);
                 dgvClientes.DataSource = dt;
@@ -68,123 +73,106 @@ namespace SistemaGestionEmpresarial.Formularios
         private void FormatearGrid()
         {
             if (dgvClientes.Columns.Count == 0) return;
-            dgvClientes.Columns["IdCliente"].HeaderText = "ID";
-            dgvClientes.Columns["Nombre"].HeaderText = "Nombre";
-            dgvClientes.Columns["Apellido"].HeaderText = "Apellido";
-            dgvClientes.Columns["Telefono"].HeaderText = "Teléfono";
-            dgvClientes.Columns["Correo"].HeaderText = "Correo";
-            dgvClientes.Columns["Direccion"].HeaderText = "Dirección";
-            dgvClientes.Columns["Estado"].HeaderText = "Estado";
-            dgvClientes.Columns["FechaRegistro"].HeaderText = "Fecha";
-            dgvClientes.Columns["IdCliente"].Width = 50;
-            dgvClientes.Columns["FechaRegistro"].DefaultCellStyle.Format = "dd/MM/yyyy";
+            if (dgvClientes.Columns.Contains("IdCliente")) { dgvClientes.Columns["IdCliente"].HeaderText = "ID"; dgvClientes.Columns["IdCliente"].Width = 50; }
+            if (dgvClientes.Columns.Contains("Nombre")) dgvClientes.Columns["Nombre"].HeaderText = "Nombre";
+            if (dgvClientes.Columns.Contains("Apellido")) dgvClientes.Columns["Apellido"].HeaderText = "Apellido";
+            if (dgvClientes.Columns.Contains("Telefono")) dgvClientes.Columns["Telefono"].HeaderText = "Teléfono";
+            if (dgvClientes.Columns.Contains("Correo")) dgvClientes.Columns["Correo"].HeaderText = "Correo";
+            if (dgvClientes.Columns.Contains("Direccion")) dgvClientes.Columns["Direccion"].HeaderText = "Dirección";
+            if (dgvClientes.Columns.Contains("Estado")) dgvClientes.Columns["Estado"].HeaderText = "Estado";
+            if (dgvClientes.Columns.Contains("FechaRegistro"))
+            {
+                dgvClientes.Columns["FechaRegistro"].HeaderText = "Fecha";
+                dgvClientes.Columns["FechaRegistro"].DefaultCellStyle.Format = "dd/MM/yyyy";
+            }
         }
 
-        // ── GUARDAR (INSERTAR / ACTUALIZAR) ───────────────────
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             if (!ValidarCampos()) return;
-
             try
             {
                 if (modoEdicion && !puedeModificar)
                 { MessageBox.Show("No tiene permiso para modificar.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-
                 if (!modoEdicion && !puedeAgregar)
                 { MessageBox.Show("No tiene permiso para agregar.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
 
-                string sp = modoEdicion ? "sp_ActualizarCliente" : "sp_InsertarCliente";
                 SqlParameter[] p;
-
                 if (modoEdicion)
-                {
                     p = new SqlParameter[] {
-                        new SqlParameter("@IdCliente", idSeleccionado),
-                        new SqlParameter("@Nombre", txtNombre.Text.Trim()),
-                        new SqlParameter("@Apellido", txtApellido.Text.Trim()),
-                        new SqlParameter("@Telefono", txtTelefono.Text.Trim()),
-                        new SqlParameter("@Correo", txtCorreo.Text.Trim()),
-                        new SqlParameter("@Direccion", txtDireccion.Text.Trim()),
-                        new SqlParameter("@Estado", cmbEstado.SelectedItem.ToString())
+                        new SqlParameter("@IdCliente",  idSeleccionado),
+                        new SqlParameter("@Nombre",     txtNombre.Text.Trim()),
+                        new SqlParameter("@Apellido",   txtApellido.Text.Trim()),
+                        new SqlParameter("@Telefono",   txtTelefono.Text.Trim()),
+                        new SqlParameter("@Correo",     txtCorreo.Text.Trim()),
+                        new SqlParameter("@Direccion",  txtDireccion.Text.Trim()),
+                        new SqlParameter("@Estado",     cmbEstado.SelectedItem.ToString())
                     };
-                }
                 else
-                {
                     p = new SqlParameter[] {
-                        new SqlParameter("@Nombre", txtNombre.Text.Trim()),
-                        new SqlParameter("@Apellido", txtApellido.Text.Trim()),
-                        new SqlParameter("@Telefono", txtTelefono.Text.Trim()),
-                        new SqlParameter("@Correo", txtCorreo.Text.Trim()),
-                        new SqlParameter("@Direccion", txtDireccion.Text.Trim()),
-                        new SqlParameter("@Estado", cmbEstado.SelectedItem.ToString())
+                        new SqlParameter("@Nombre",     txtNombre.Text.Trim()),
+                        new SqlParameter("@Apellido",   txtApellido.Text.Trim()),
+                        new SqlParameter("@Telefono",   txtTelefono.Text.Trim()),
+                        new SqlParameter("@Correo",     txtCorreo.Text.Trim()),
+                        new SqlParameter("@Direccion",  txtDireccion.Text.Trim()),
+                        new SqlParameter("@Estado",     cmbEstado.SelectedItem.ToString())
                     };
-                }
 
-                DataTable resultado = db.EjecutarProcedimiento(sp, p);
-                int res = resultado.Rows.Count > 0 ? Convert.ToInt32(resultado.Rows[0][0]) : 0;
+                string sp = modoEdicion ? "sp_ActualizarCliente" : "sp_InsertarCliente";
+                DataTable res = db.EjecutarProcedimiento(sp, p);
+                int resultado = res.Rows.Count > 0 ? Convert.ToInt32(res.Rows[0][0]) : 0;
 
-                if (res == -1)
+                if (resultado == -1)
                 { MessageBox.Show("El correo ya está registrado.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
 
-                MessageBox.Show(modoEdicion ? "Cliente actualizado correctamente." : "Cliente registrado correctamente.",
+                MessageBox.Show(modoEdicion ? "✅ Cliente actualizado." : "✅ Cliente registrado.",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LimpiarCampos();
                 CargarDatos();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
         }
 
-        // ── ELIMINAR ──────────────────────────────────────────
         private void btnEliminar_Click(object sender, EventArgs e)
         {
             if (idSeleccionado == 0)
-            { MessageBox.Show("Seleccione un cliente primero. 👆"); return; }
-
+            { MessageBox.Show("Seleccione un cliente."); return; }
             if (!puedeEliminar)
-            {
-                MessageBox.Show("No tiene permiso para eliminar. 🔒", "Acceso Denegado",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning); return;
-            }
+            { MessageBox.Show("No tiene permiso para eliminar.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
 
-            if (MessageBox.Show("¿Eliminar al cliente seleccionado?\n(Se marcará como Inactivo)",
-                "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            if (MessageBox.Show("¿Eliminar el cliente seleccionado?\n(Se marcará como Inactivo)",
+                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
                 try
                 {
-                    using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(
+                    // DELETE directo — más confiable
+                    using (SqlConnection conn = new SqlConnection(
                         "Server=.;Database=GestionEmpresarial;Integrated Security=true;"))
                     {
                         conn.Open();
-                        using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(
+                        using (SqlCommand cmd = new SqlCommand(
                             "UPDATE Clientes SET Estado = 'Inactivo' WHERE IdCliente = @Id", conn))
                         {
                             cmd.Parameters.AddWithValue("@Id", idSeleccionado);
                             int filas = cmd.ExecuteNonQuery();
                             if (filas > 0)
                             {
-                                MessageBox.Show("✅ Cliente eliminado correctamente.", "Éxito",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                MessageBox.Show("✅ Cliente eliminado.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 LimpiarCampos();
                                 CargarDatos();
                             }
-                            else
-                                MessageBox.Show("No se encontró el cliente.", "Aviso");
+                            else MessageBox.Show("No se encontró el cliente.", "Aviso");
                         }
                     }
                 }
-                catch (Exception ex)
-                { MessageBox.Show("Error al eliminar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                catch (Exception ex) { MessageBox.Show("Error al eliminar: " + ex.Message); }
             }
         }
 
-        // ── SELECCIONAR FILA DEL GRID ─────────────────────────
         private void dgvClientes_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
-            DataGridViewRow fila = dgvClientes.Rows[e.RowIndex];
+            var fila = dgvClientes.Rows[e.RowIndex];
             idSeleccionado = Convert.ToInt32(fila.Cells["IdCliente"].Value);
             txtNombre.Text = fila.Cells["Nombre"].Value.ToString();
             txtApellido.Text = fila.Cells["Apellido"].Value.ToString();
@@ -193,15 +181,20 @@ namespace SistemaGestionEmpresarial.Formularios
             txtDireccion.Text = fila.Cells["Direccion"].Value.ToString();
             cmbEstado.SelectedItem = fila.Cells["Estado"].Value.ToString();
             modoEdicion = true;
-            btnGuardar.Text = "✏️ Actualizar";
+            btnGuardar.Text = "✏️  Actualizar";
         }
 
-        // ── FILTROS DE BÚSQUEDA ───────────────────────────────
         private void txtBuscar_TextChanged(object sender, EventArgs e) => Filtrar();
         private void cmbFiltroEstado_SelectedIndexChanged(object sender, EventArgs e) => Filtrar();
-        private void Filtrar() => CargarDatos(txtBuscar.Text.Trim(), cmbFiltroEstado.SelectedItem?.ToString() ?? "Todos");
+        private void txtBuscar_KeyDown(object sender, KeyEventArgs e)
+        { if (e.KeyCode == Keys.Enter) Filtrar(); }
 
-        // ── VALIDACIONES ──────────────────────────────────────
+        private void Filtrar()
+        {
+            string b = txtBuscar.Text == PLACEHOLDER ? "" : txtBuscar.Text.Trim();
+            CargarDatos(b, cmbFiltroEstado.SelectedItem?.ToString() ?? "Todos");
+        }
+
         private bool ValidarCampos()
         {
             if (string.IsNullOrWhiteSpace(txtNombre.Text))
@@ -213,7 +206,6 @@ namespace SistemaGestionEmpresarial.Formularios
             return true;
         }
 
-        // ── LIMPIAR ───────────────────────────────────────────
         private void btnLimpiar_Click(object sender, EventArgs e) => LimpiarCampos();
 
         private void LimpiarCampos()
@@ -222,14 +214,8 @@ namespace SistemaGestionEmpresarial.Formularios
             txtNombre.Clear(); txtApellido.Clear(); txtTelefono.Clear();
             txtCorreo.Clear(); txtDireccion.Clear();
             cmbEstado.SelectedIndex = 0;
-            btnGuardar.Text = "💾 Guardar";
+            btnGuardar.Text = "💾  Guardar";
             txtNombre.Focus();
-        }
-
-        // ── BÚSQUEDA POR ID (Enter) ───────────────────────────
-        private void txtBuscar_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter) Filtrar();
         }
     }
 }

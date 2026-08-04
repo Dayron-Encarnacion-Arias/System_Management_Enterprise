@@ -10,16 +10,13 @@ using SistemaGestionEmpresarial.Data;
 
 namespace SistemaGestionEmpresarial.Formularios
 {
-    /// <summary>
-    /// Formulario de reporte dinámico para Clientes o Productos.
-    /// Incluye filtros, vista previa, impresión y exportación a CSV.
-    /// </summary>
     public partial class FrmReporte : Form
     {
         private ConexionBD db = new ConexionBD();
-        private string tipoReporte;   // "Clientes" o "Productos"
+        private string tipoReporte;
         private DataTable dtReporte;
         private PrintDocument printDoc;
+        private int filaActual = 0;
 
         public FrmReporte(string tipo)
         {
@@ -29,8 +26,8 @@ namespace SistemaGestionEmpresarial.Formularios
 
         private void FrmReporte_Load(object sender, EventArgs e)
         {
-            lblTituloReporte.Text = $"📊 Reporte de {tipoReporte}";
-            this.Text = $"Reporte de {tipoReporte}";
+            lblTituloReporte.Text = $"📊  Reporte de {tipoReporte}";
+            this.Text = $"Reporte de {tipoReporte} 📊";
             ConfigurarFiltrosPorTipo();
             GenerarReporte();
         }
@@ -45,11 +42,12 @@ namespace SistemaGestionEmpresarial.Formularios
                 lblFiltro2.Visible = false;
                 cmbFiltro2.Visible = false;
             }
-            else // Productos
+            else
             {
                 lblFiltro.Text = "Filtrar por Categoría:";
                 DataTable cats = db.EjecutarProcedimiento("sp_ObtenerCategorias");
-                DataRow r = cats.NewRow(); r["IdCategoria"] = 0; r["NombreCategoria"] = "Todas";
+                DataRow r = cats.NewRow();
+                r["IdCategoria"] = 0; r["NombreCategoria"] = "Todas";
                 cats.Rows.InsertAt(r, 0);
                 cmbFiltro.DataSource = cats;
                 cmbFiltro.DisplayMember = "NombreCategoria";
@@ -80,7 +78,9 @@ namespace SistemaGestionEmpresarial.Formularios
                 else
                 {
                     sp = "sp_ReporteProductos";
-                    int catId = cmbFiltro.SelectedValue != null ? Convert.ToInt32(cmbFiltro.SelectedValue) : 0;
+                    int catId = 0;
+                    if (cmbFiltro.SelectedItem is DataRowView drv)
+                        catId = Convert.ToInt32(drv["IdCategoria"]);
                     string estado = cmbFiltro2.SelectedItem?.ToString() ?? "Todos";
                     p = new SqlParameter[] {
                         new SqlParameter("@IdCategoria", catId),
@@ -88,14 +88,14 @@ namespace SistemaGestionEmpresarial.Formularios
                     };
                 }
 
-                DataSet ds = new DataSet();
                 // Ejecutar SP que retorna 2 ResultSets
+                DataSet ds = new DataSet();
                 var conn = db.ObtenerConexion();
-                using (var cmd = new System.Data.SqlClient.SqlCommand(sp, conn))
+                using (var cmd = new SqlCommand(sp, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddRange(p);
-                    using (var da = new System.Data.SqlClient.SqlDataAdapter(cmd))
+                    using (var da = new SqlDataAdapter(cmd))
                         da.Fill(ds);
                 }
                 db.Desconectar();
@@ -104,14 +104,12 @@ namespace SistemaGestionEmpresarial.Formularios
                 int total = ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0
                     ? Convert.ToInt32(ds.Tables[1].Rows[0]["TotalRegistros"]) : dtReporte.Rows.Count;
 
-                // Mostrar en grid
                 dgvReporte.DataSource = dtReporte;
                 FormatearGrid();
 
-                // Cabecera del reporte
-                lblFechaGeneracion.Text = $"Fecha de generación: {DateTime.Now:dd/MM/yyyy HH:mm}";
-                lblTotalRegistros.Text = $"Total de registros: {total}";
-                lblGeneradoPor.Text = $"Generado por: {SesionGlobal.UsuarioActual?.Nombre}";
+                lblFechaGeneracion.Text = $"📅  Fecha de generación: {DateTime.Now:dd/MM/yyyy  HH:mm}";
+                lblTotalRegistros.Text = $"✨  Total de registros: {total}";
+                lblGeneradoPor.Text = $"👤  Generado por: {SesionGlobal.UsuarioActual?.Nombre}";
             }
             catch (Exception ex)
             {
@@ -129,13 +127,12 @@ namespace SistemaGestionEmpresarial.Formularios
                 dgvReporte.Columns["Precio"].DefaultCellStyle.Format = "C2";
         }
 
-        // ── BOTONES ───────────────────────────────────────────
         private void btnGenerar_Click(object sender, EventArgs e) => GenerarReporte();
 
         private void btnExportarCSV_Click(object sender, EventArgs e)
         {
             if (dtReporte == null || dtReporte.Rows.Count == 0)
-            { MessageBox.Show("No hay datos para exportar."); return; }
+            { MessageBox.Show("No hay datos para exportar. 📄"); return; }
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
@@ -145,19 +142,18 @@ namespace SistemaGestionEmpresarial.Formularios
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
                     var sb = new StringBuilder();
-                    // Encabezados
                     sb.AppendLine($"\"REPORTE DE {tipoReporte.ToUpper()}\"");
                     sb.AppendLine($"\"Fecha:\",\"{DateTime.Now:dd/MM/yyyy HH:mm}\"");
                     sb.AppendLine($"\"Total registros:\",\"{dtReporte.Rows.Count}\"");
                     sb.AppendLine();
-                    // Columnas
+
                     for (int i = 0; i < dtReporte.Columns.Count; i++)
                     {
                         sb.Append($"\"{dtReporte.Columns[i].ColumnName}\"");
                         if (i < dtReporte.Columns.Count - 1) sb.Append(",");
                     }
                     sb.AppendLine();
-                    // Datos
+
                     foreach (DataRow row in dtReporte.Rows)
                     {
                         for (int i = 0; i < dtReporte.Columns.Count; i++)
@@ -169,10 +165,8 @@ namespace SistemaGestionEmpresarial.Formularios
                     }
 
                     File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
-                    MessageBox.Show($"Reporte exportado exitosamente:\n{sfd.FileName}",
+                    MessageBox.Show($"✅ Reporte exportado:\n{sfd.FileName}",
                         "Exportación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // Abrir archivo
                     System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{sfd.FileName}\"");
                 }
             }
@@ -181,8 +175,9 @@ namespace SistemaGestionEmpresarial.Formularios
         private void btnImprimir_Click(object sender, EventArgs e)
         {
             if (dtReporte == null || dtReporte.Rows.Count == 0)
-            { MessageBox.Show("No hay datos para imprimir."); return; }
+            { MessageBox.Show("No hay datos para imprimir. 🖨️"); return; }
 
+            filaActual = 0;
             printDoc = new PrintDocument();
             printDoc.PrintPage += PrintDoc_PrintPage;
             printDoc.DocumentName = $"Reporte de {tipoReporte}";
@@ -190,58 +185,55 @@ namespace SistemaGestionEmpresarial.Formularios
             using (PrintPreviewDialog ppd = new PrintPreviewDialog())
             {
                 ppd.Document = printDoc;
-                ppd.Width = 900;
-                ppd.Height = 700;
+                ppd.Width = 900; ppd.Height = 700;
                 ppd.ShowDialog();
             }
         }
-
-        private int filaActual = 0;
 
         private void PrintDoc_PrintPage(object sender, PrintPageEventArgs e)
         {
             Graphics g = e.Graphics;
             Font fTitulo = new Font("Segoe UI", 16, FontStyle.Bold);
-            Font fSub = new Font("Segoe UI", 10, FontStyle.Regular);
+            Font fSub = new Font("Segoe UI", 9, FontStyle.Regular);
             Font fHeader = new Font("Segoe UI", 9, FontStyle.Bold);
             Font fData = new Font("Segoe UI", 8, FontStyle.Regular);
 
             int x = 40, y = 40;
 
-            // Título
-            g.DrawString($"REPORTE DE {tipoReporte.ToUpper()}", fTitulo, Brushes.DarkBlue, x, y); y += 30;
-            g.DrawString($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}   |   Total: {dtReporte.Rows.Count} registros   |   Generado por: {SesionGlobal.UsuarioActual?.Nombre}", fSub, Brushes.Gray, x, y); y += 20;
-            g.DrawLine(Pens.DarkBlue, x, y, e.PageBounds.Width - 40, y); y += 10;
+            // Header con color morado
+            g.FillRectangle(new SolidBrush(Color.FromArgb(74, 20, 140)), x - 10, y - 10, e.PageBounds.Width - 60, 40);
+            g.DrawString($"REPORTE DE {tipoReporte.ToUpper()}", fTitulo, Brushes.White, x, y); y += 30;
+            g.DrawString($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}   |   Total: {dtReporte.Rows.Count} registros   |   {SesionGlobal.UsuarioActual?.Nombre}", fSub, Brushes.Gray, x, y + 10); y += 35;
 
-            // Columnas
-            int[] colWidths = new int[dtReporte.Columns.Count];
             int totalW = e.PageBounds.Width - 80;
+            int[] colW = new int[dtReporte.Columns.Count];
             for (int i = 0; i < dtReporte.Columns.Count; i++)
-                colWidths[i] = totalW / dtReporte.Columns.Count;
+                colW[i] = totalW / dtReporte.Columns.Count;
 
+            // Headers
             int cx = x;
             foreach (DataColumn col in dtReporte.Columns)
             {
-                g.FillRectangle(new SolidBrush(Color.FromArgb(41, 128, 185)), cx, y, colWidths[dtReporte.Columns.IndexOf(col)], 20);
-                g.DrawString(col.ColumnName, fHeader, Brushes.White, cx + 2, y + 2);
-                cx += colWidths[dtReporte.Columns.IndexOf(col)];
+                int idx = dtReporte.Columns.IndexOf(col);
+                g.FillRectangle(new SolidBrush(Color.FromArgb(142, 36, 170)), cx, y, colW[idx], 22);
+                g.DrawString(col.ColumnName, fHeader, Brushes.White, cx + 2, y + 3);
+                cx += colW[idx];
             }
-            y += 22;
+            y += 24;
 
-            // Filas
-            bool altRow = false;
+            bool alt = false;
             while (filaActual < dtReporte.Rows.Count)
             {
                 if (y + 18 > e.PageBounds.Height - 60) { e.HasMorePages = true; break; }
                 DataRow row = dtReporte.Rows[filaActual];
                 cx = x;
-                if (altRow) g.FillRectangle(new SolidBrush(Color.FromArgb(235, 245, 255)), cx, y, totalW, 16);
+                if (alt) g.FillRectangle(new SolidBrush(Color.FromArgb(248, 240, 255)), cx, y, totalW, 16);
                 for (int i = 0; i < dtReporte.Columns.Count; i++)
                 {
-                    g.DrawString(row[i].ToString(), fData, Brushes.Black, cx + 2, y + 1);
-                    cx += colWidths[i];
+                    g.DrawString(row[i].ToString(), fData, new SolidBrush(Color.FromArgb(74, 20, 140)), cx + 2, y + 1);
+                    cx += colW[i];
                 }
-                y += 18; filaActual++; altRow = !altRow;
+                y += 18; filaActual++; alt = !alt;
             }
             if (filaActual >= dtReporte.Rows.Count) { e.HasMorePages = false; filaActual = 0; }
         }
