@@ -12,14 +12,14 @@ namespace SistemaGestionEmpresarial.Formularios
         private int intentosFallidos = 0;
         private const int MAX_INTENTOS = 3;
         private bool mostrandoPassword = false;
+        private bool estaMaximizado = true;
+        private Size tamañoNormal = new Size(1366, 768);
+        private Point posicionNormal = new Point(100, 100);
 
-        // Colores tema negro/rojo
         private readonly Color ROJO_PRINCIPAL = Color.FromArgb(211, 47, 47);
         private readonly Color ROJO_HOVER = Color.FromArgb(244, 67, 54);
-        private readonly Color ROJO_DARK = Color.FromArgb(150, 20, 20);
-        private readonly Color NEGRO_CARD = Color.FromArgb(28, 28, 28);
-        private readonly Color NEGRO_INPUT = Color.FromArgb(40, 40, 40);
-        private readonly Color NEGRO_FONDO = Color.FromArgb(10, 10, 10);
+        private readonly Color ROJO_INPUT = Color.FromArgb(60, 10, 10);
+        private readonly Color INPUT_NORMAL = Color.FromArgb(40, 40, 40);
 
         public FrmLogin()
         {
@@ -30,20 +30,98 @@ namespace SistemaGestionEmpresarial.Formularios
         private void FrmLogin_Load(object sender, EventArgs e)
         {
             this.Text = "Sistema de Gestión Empresarial";
-            this.FormBorderStyle = FormBorderStyle.None; // Sin bordes — fondo completo
+            this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
+            estaMaximizado = true;
+
             ActualizarIntentos();
             ConfigurarHoverEffects();
             ConfigurarPlaceholders();
+            CentrarCard();
+        }
+
+        private void CentrarCard()
+        {
             panelCard.Location = new Point(
                 (this.ClientSize.Width - panelCard.Width) / 2,
                 (this.ClientSize.Height - panelCard.Height) / 2);
         }
 
+        // ── CONTROLES DE VENTANA PERSONALIZADOS ───────────────
+        private void btnMinimizar_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void btnMaxRestore_Click(object sender, EventArgs e)
+        {
+            if (estaMaximizado)
+            {
+                // Pasar a ventana normal
+                posicionNormal = new Point(200, 100);
+                tamañoNormal = new Size(1100, 700);
+                this.WindowState = FormWindowState.Normal;
+                this.Size = tamañoNormal;
+                this.Location = posicionNormal;
+                btnMaxRestore.Text = "🗖";
+                estaMaximizado = false;
+            }
+            else
+            {
+                // Volver a pantalla completa
+                this.WindowState = FormWindowState.Maximized;
+                btnMaxRestore.Text = "🗗";
+                estaMaximizado = true;
+            }
+            CentrarCard();
+        }
+
+        private void btnCerrarVentana_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("¿Desea salir?", "Confirmar",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                Application.Exit();
+        }
+
+        // Arrastrar la ventana desde el título
+        private bool dragging = false;
+        private Point dragStart;
+
+        private void panelTitleBar_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left) { dragging = true; dragStart = e.Location; }
+        }
+
+        private void panelTitleBar_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!dragging) return;
+            if (estaMaximizado)
+            {
+                // Salir de maximizado al arrastrar
+                this.WindowState = FormWindowState.Normal;
+                this.Size = new Size(1100, 700);
+                this.Location = new Point(Cursor.Position.X - 550, Cursor.Position.Y - 15);
+                btnMaxRestore.Text = "🗖";
+                estaMaximizado = false;
+                dragStart = new Point(550, 15);
+                CentrarCard();
+                return;
+            }
+            Point diff = Point.Subtract(Cursor.Position, new Size(dragStart));
+            this.Location = new Point(
+                this.Location.X + e.Location.X - dragStart.X,
+                this.Location.Y + e.Location.Y - dragStart.Y);
+        }
+
+        private void panelTitleBar_MouseUp(object sender, MouseEventArgs e) => dragging = false;
+
+        private void panelTitleBar_DoubleClick(object sender, EventArgs e)
+            => btnMaxRestore_Click(sender, e);
+
         // ── HOVER EFFECTS ─────────────────────────────────────
         private void ConfigurarHoverEffects()
         {
-            // Botón Iniciar Sesión — glow rojo al pasar el cursor
+            // Botón Iniciar — glow rojo
             btnIniciarSesion.MouseEnter += (s, e) => {
                 btnIniciarSesion.BackColor = ROJO_HOVER;
                 btnIniciarSesion.FlatAppearance.BorderColor = Color.FromArgb(255, 100, 100);
@@ -54,7 +132,7 @@ namespace SistemaGestionEmpresarial.Formularios
                 btnIniciarSesion.FlatAppearance.BorderSize = 0;
             };
 
-            // Botón Cancelar — borde rojo al hover
+            // Botón Cancelar — borde rojo hover
             btnSalir.MouseEnter += (s, e) => {
                 btnSalir.FlatAppearance.BorderColor = ROJO_HOVER;
                 btnSalir.ForeColor = ROJO_HOVER;
@@ -64,13 +142,21 @@ namespace SistemaGestionEmpresarial.Formularios
                 btnSalir.ForeColor = Color.FromArgb(180, 180, 180);
             };
 
-            // TextBox Usuario — borde rojo al enfocar
-            txtUsuario.GotFocus += (s, e) => { txtUsuario.BackColor = Color.FromArgb(50, 10, 10); };
-            txtUsuario.LostFocus += (s, e) => { txtUsuario.BackColor = NEGRO_INPUT; };
+            // Campo usuario — fondo rojo oscuro al enfocar
+            txtUsuario.GotFocus += (s, e) => txtUsuario.BackColor = ROJO_INPUT;
+            txtUsuario.LostFocus += (s, e) => txtUsuario.BackColor = INPUT_NORMAL;
 
-            // TextBox Contraseña — borde rojo al enfocar
-            txtContraseña.GotFocus += (s, e) => { panelPassword.BackColor = Color.FromArgb(50, 10, 10); };
-            txtContraseña.LostFocus += (s, e) => { panelPassword.BackColor = NEGRO_INPUT; };
+            // Campo contraseña — AMBOS el panel Y el textbox cambian de color
+            txtContraseña.GotFocus += (s, e) => {
+                panelPassword.BackColor = ROJO_INPUT;
+                txtContraseña.BackColor = ROJO_INPUT;  // ← FIX: también el textbox
+                btnOjo.BackColor = ROJO_INPUT;
+            };
+            txtContraseña.LostFocus += (s, e) => {
+                panelPassword.BackColor = INPUT_NORMAL;
+                txtContraseña.BackColor = INPUT_NORMAL; // ← FIX: también el textbox
+                btnOjo.BackColor = INPUT_NORMAL;
+            };
         }
 
         // ── PLACEHOLDERS ──────────────────────────────────────
@@ -120,7 +206,9 @@ namespace SistemaGestionEmpresarial.Formularios
         {
             int restantes = MAX_INTENTOS - intentosFallidos;
             lblIntentos.Text = $"🔒  Intentos disponibles: {restantes}";
-            lblIntentos.ForeColor = restantes == 1 ? Color.FromArgb(255, 80, 80) : Color.FromArgb(150, 150, 150);
+            lblIntentos.ForeColor = restantes == 1
+                ? Color.FromArgb(255, 80, 80)
+                : Color.FromArgb(150, 150, 150);
         }
 
         private void btnIniciarSesion_Click(object sender, EventArgs e) => IniciarSesion();
@@ -166,7 +254,8 @@ namespace SistemaGestionEmpresarial.Formularios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error de conexión:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error de conexión:\n" + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -199,17 +288,10 @@ namespace SistemaGestionEmpresarial.Formularios
         private void FrmLogin_FormClosing(object sender, FormClosingEventArgs e)
         { if (SesionGlobal.UsuarioActual == null) Application.Exit(); }
 
-        // Permitir mover la ventana sin barra de título
-        private bool dragging = false;
-        private Point dragCursorPoint, dragFormPoint;
-        private void panelCard_MouseDown(object sender, MouseEventArgs e)
-        { dragging = true; dragCursorPoint = Cursor.Position; dragFormPoint = this.Location; }
-        private void panelCard_MouseMove(object sender, MouseEventArgs e)
+        private void FrmLogin_Resize(object sender, EventArgs e)
         {
-            if (!dragging) return;
-            Point diff = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
-            this.Location = Point.Add(dragFormPoint, new Size(diff));
+            if (this.WindowState != FormWindowState.Minimized)
+                CentrarCard();
         }
-        private void panelCard_MouseUp(object sender, MouseEventArgs e) { dragging = false; }
     }
 }
