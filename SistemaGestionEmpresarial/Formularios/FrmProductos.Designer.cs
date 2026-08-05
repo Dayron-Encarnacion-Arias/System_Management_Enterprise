@@ -13,7 +13,11 @@
             this.lblTituloSub = new System.Windows.Forms.Label();
             this.panelBarraRoja = new System.Windows.Forms.Panel();
             this.panelIzq = new System.Windows.Forms.Panel();
-            this.panelFormCard = new System.Windows.Forms.Panel();
+            this.panelBotones = new System.Windows.Forms.Panel(); // Dock=Bottom — PRIMERO
+            this.btnGuardar = new System.Windows.Forms.Button();
+            this.btnEliminar = new System.Windows.Forms.Button();
+            this.btnLimpiar = new System.Windows.Forms.Button();
+            this.panelFormCard = new System.Windows.Forms.Panel(); // Dock=Fill — SEGUNDO
             this.lblCardTitle = new System.Windows.Forms.Label();
             this.lblCodigo = new System.Windows.Forms.Label();
             this.txtCodigo = new System.Windows.Forms.TextBox();
@@ -27,10 +31,6 @@
             this.cmbCategoria = new System.Windows.Forms.ComboBox();
             this.lblEstado = new System.Windows.Forms.Label();
             this.cmbEstado = new System.Windows.Forms.ComboBox();
-            this.panelBotones = new System.Windows.Forms.Panel();
-            this.btnGuardar = new System.Windows.Forms.Button();
-            this.btnEliminar = new System.Windows.Forms.Button();
-            this.btnLimpiar = new System.Windows.Forms.Button();
             this.panelDer = new System.Windows.Forms.Panel();
             this.panelFiltros = new System.Windows.Forms.Panel();
             this.lblFiltrosTitulo = new System.Windows.Forms.Label();
@@ -45,6 +45,7 @@
 
             this.panelTitulo.SuspendLayout();
             this.panelIzq.SuspendLayout();
+            this.panelBotones.SuspendLayout();
             this.panelFormCard.SuspendLayout();
             this.panelDer.SuspendLayout();
             this.panelFiltros.SuspendLayout();
@@ -55,7 +56,7 @@
             var NEGRO = System.Drawing.Color.FromArgb(28, 28, 28);
             var INPUT = System.Drawing.Color.FromArgb(40, 40, 40);
 
-            // Título
+            // ── TÍTULO ────────────────────────────────────────────
             this.panelTitulo.BackColor = System.Drawing.Color.FromArgb(18, 18, 18);
             this.panelTitulo.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelTitulo.Height = 60;
@@ -70,18 +71,44 @@
             this.lblTituloSub.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Italic);
             this.lblTituloSub.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
             this.lblTituloSub.Location = new System.Drawing.Point(20, 38); this.lblTituloSub.AutoSize = true;
-            this.panelTitulo.Controls.Add(this.lblTitulo);
-            this.panelTitulo.Controls.Add(this.lblTituloSub);
-            this.panelTitulo.Controls.Add(this.panelBarraRoja);
+            this.panelTitulo.Controls.AddRange(new System.Windows.Forms.Control[] {
+                this.panelBarraRoja, this.lblTitulo, this.lblTituloSub });
 
-            // Panel Izq
+            // ── PANEL IZQUIERDO ───────────────────────────────────
             this.panelIzq.BackColor = System.Drawing.Color.FromArgb(20, 20, 20);
             this.panelIzq.Dock = System.Windows.Forms.DockStyle.Left;
             this.panelIzq.Width = 295;
 
+            // ── PANEL BOTONES: Dock=Bottom ────────────────────────
+            this.panelBotones.BackColor = System.Drawing.Color.FromArgb(20, 20, 20);
+            this.panelBotones.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panelBotones.Height = 55;
+
+            void estBtn(System.Windows.Forms.Button b, string txt, int bx, int bw,
+                        System.Drawing.Color bg, System.EventHandler click)
+            {
+                b.Text = txt; b.Location = new System.Drawing.Point(bx, 8);
+                b.Size = new System.Drawing.Size(bw, 38);
+                b.BackColor = bg; b.ForeColor = System.Drawing.Color.White;
+                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                b.FlatAppearance.BorderSize = 0;
+                b.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                b.Cursor = System.Windows.Forms.Cursors.Hand;
+                b.Click += click;
+            }
+
+            estBtn(this.btnGuardar, "💾  Guardar", 8, 128, ROJO, this.btnGuardar_Click);
+            estBtn(this.btnEliminar, "🗑️ Eliminar", 142, 90,
+                System.Drawing.Color.FromArgb(60, 60, 60), this.btnEliminar_Click);
+            estBtn(this.btnLimpiar, "🔄", 238, 42,
+                System.Drawing.Color.FromArgb(45, 45, 45), this.btnLimpiar_Click);
+
+            this.panelBotones.Controls.AddRange(new System.Windows.Forms.Control[] {
+                this.btnGuardar, this.btnEliminar, this.btnLimpiar });
+
+            // ── PANEL FORM CARD: Dock=Fill ────────────────────────
             this.panelFormCard.BackColor = NEGRO;
-            this.panelFormCard.Location = new System.Drawing.Point(10, 10);
-            this.panelFormCard.Size = new System.Drawing.Size(272, 490);
+            this.panelFormCard.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelFormCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 
             this.lblCardTitle.Text = "✏️  Datos del Producto";
@@ -94,59 +121,45 @@
             this.lblCardTitle.Padding = new System.Windows.Forms.Padding(8, 0, 0, 0);
 
             int y = 40;
-            void addF(System.Windows.Forms.Label l, string t, System.Windows.Forms.TextBox tb, int yy)
+            void addField(System.Windows.Forms.Label l, string t,
+                          System.Windows.Forms.Control ctrl, int yy)
             {
                 l.Text = t; l.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
                 l.ForeColor = ROJO; l.Location = new System.Drawing.Point(10, yy); l.AutoSize = true;
-                tb.Location = new System.Drawing.Point(10, yy + 17); tb.Size = new System.Drawing.Size(248, 24);
-                tb.Font = new System.Drawing.Font("Segoe UI", 9.5F); tb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-                tb.BackColor = INPUT; tb.ForeColor = System.Drawing.Color.White;
-                this.panelFormCard.Controls.Add(l); this.panelFormCard.Controls.Add(tb);
+                ctrl.Location = new System.Drawing.Point(10, yy + 17);
+                ctrl.Size = new System.Drawing.Size(255, 24);
+                if (ctrl is System.Windows.Forms.TextBox tb)
+                {
+                    tb.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+                    tb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+                    tb.BackColor = INPUT; tb.ForeColor = System.Drawing.Color.White;
+                }
+                if (ctrl is System.Windows.Forms.ComboBox cmb)
+                {
+                    cmb.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+                    cmb.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+                    cmb.BackColor = INPUT; cmb.ForeColor = System.Drawing.Color.White;
+                }
+                this.panelFormCard.Controls.Add(l);
+                this.panelFormCard.Controls.Add(ctrl);
             }
 
-            addF(this.lblCodigo, "CÓDIGO:", this.txtCodigo, y); y += 50;
-            addF(this.lblNombre, "NOMBRE:", this.txtNombre, y); y += 50;
-            addF(this.lblPrecio, "PRECIO ($):", this.txtPrecio, y); this.txtPrecio.Text = "0"; y += 50;
-            addF(this.lblStock, "STOCK:", this.txtStock, y); this.txtStock.Text = "0"; y += 50;
+            addField(this.lblCodigo, "CÓDIGO:", this.txtCodigo, y); y += 50;
+            addField(this.lblNombre, "NOMBRE:", this.txtNombre, y); y += 50;
+            addField(this.lblPrecio, "PRECIO ($):", this.txtPrecio, y); this.txtPrecio.Text = "0"; y += 50;
+            addField(this.lblStock, "STOCK:", this.txtStock, y); this.txtStock.Text = "0"; y += 50;
+            addField(this.lblCategoria, "CATEGORÍA:", this.cmbCategoria, y); y += 50;
+            addField(this.lblEstado, "ESTADO:", this.cmbEstado, y);
+            this.cmbEstado.Items.AddRange(new object[] { "Activo", "Inactivo" });
+            this.cmbEstado.SelectedIndex = 0;
 
-            this.lblCategoria.Text = "CATEGORÍA:"; this.lblCategoria.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
-            this.lblCategoria.ForeColor = ROJO; this.lblCategoria.Location = new System.Drawing.Point(10, y); this.lblCategoria.AutoSize = true;
-            this.cmbCategoria.Location = new System.Drawing.Point(10, y + 17); this.cmbCategoria.Size = new System.Drawing.Size(248, 24);
-            this.cmbCategoria.Font = new System.Drawing.Font("Segoe UI", 9.5F); this.cmbCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbCategoria.BackColor = INPUT; this.cmbCategoria.ForeColor = System.Drawing.Color.White;
-            this.panelFormCard.Controls.Add(this.lblCategoria); this.panelFormCard.Controls.Add(this.cmbCategoria); y += 50;
-
-            this.lblEstado.Text = "ESTADO:"; this.lblEstado.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
-            this.lblEstado.ForeColor = ROJO; this.lblEstado.Location = new System.Drawing.Point(10, y); this.lblEstado.AutoSize = true;
-            this.cmbEstado.Location = new System.Drawing.Point(10, y + 17); this.cmbEstado.Size = new System.Drawing.Size(248, 24);
-            this.cmbEstado.Font = new System.Drawing.Font("Segoe UI", 9.5F); this.cmbEstado.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbEstado.BackColor = INPUT; this.cmbEstado.ForeColor = System.Drawing.Color.White;
-            this.cmbEstado.Items.AddRange(new object[] { "Activo", "Inactivo" }); this.cmbEstado.SelectedIndex = 0;
-            this.panelFormCard.Controls.Add(this.lblEstado); this.panelFormCard.Controls.Add(this.cmbEstado);
             this.panelFormCard.Controls.Add(this.lblCardTitle);
 
-            this.panelBotones.BackColor = System.Drawing.Color.FromArgb(20, 20, 20);
-            this.panelBotones.Location = new System.Drawing.Point(10, 508);
-            this.panelBotones.Size = new System.Drawing.Size(272, 50);
+            // ── ORDEN CRÍTICO: Bottom ANTES que Fill ──────────────
+            this.panelIzq.Controls.Add(this.panelBotones);   // 1) Bottom primero
+            this.panelIzq.Controls.Add(this.panelFormCard);  // 2) Fill segundo
 
-            void estBtn(System.Windows.Forms.Button b, string txt, int bx, int bw, System.Drawing.Color bg, System.EventHandler click)
-            {
-                b.Text = txt; b.Location = new System.Drawing.Point(bx, 5); b.Size = new System.Drawing.Size(bw, 38);
-                b.BackColor = bg; b.ForeColor = System.Drawing.Color.White;
-                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat; b.FlatAppearance.BorderSize = 0;
-                b.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-                b.Cursor = System.Windows.Forms.Cursors.Hand; b.Click += click;
-            }
-
-            estBtn(this.btnGuardar, "💾  Guardar", 0, 128, ROJO, this.btnGuardar_Click);
-            estBtn(this.btnEliminar, "🗑️ Eliminar", 134, 90, System.Drawing.Color.FromArgb(60, 60, 60), this.btnEliminar_Click);
-            estBtn(this.btnLimpiar, "🔄", 230, 42, System.Drawing.Color.FromArgb(45, 45, 45), this.btnLimpiar_Click);
-
-            this.panelBotones.Controls.AddRange(new System.Windows.Forms.Control[] { this.btnGuardar, this.btnEliminar, this.btnLimpiar });
-            this.panelIzq.Controls.Add(this.panelFormCard);
-            this.panelIzq.Controls.Add(this.panelBotones);
-
-            // Panel Der
+            // ── PANEL DERECHO ─────────────────────────────────────
             this.panelDer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelDer.BackColor = System.Drawing.Color.FromArgb(22, 22, 22);
 
@@ -159,28 +172,39 @@
 
             this.lblFiltrosTitulo.Text = "🔍  Filtros de Búsqueda";
             this.lblFiltrosTitulo.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            this.lblFiltrosTitulo.ForeColor = ROJO; this.lblFiltrosTitulo.Location = new System.Drawing.Point(10, 10); this.lblFiltrosTitulo.AutoSize = true;
+            this.lblFiltrosTitulo.ForeColor = ROJO;
+            this.lblFiltrosTitulo.Location = new System.Drawing.Point(10, 10); this.lblFiltrosTitulo.AutoSize = true;
 
-            this.lblBuscar.Text = "ID / CÓDIGO / NOMBRE:"; this.lblBuscar.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this.lblBuscar.ForeColor = System.Drawing.Color.FromArgb(150, 150, 150); this.lblBuscar.Location = new System.Drawing.Point(10, 35); this.lblBuscar.AutoSize = true;
+            this.lblBuscar.Text = "ID / CÓDIGO / NOMBRE:";
+            this.lblBuscar.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblBuscar.ForeColor = System.Drawing.Color.FromArgb(150, 150, 150);
+            this.lblBuscar.Location = new System.Drawing.Point(10, 35); this.lblBuscar.AutoSize = true;
             this.txtBuscar.Location = new System.Drawing.Point(10, 52); this.txtBuscar.Size = new System.Drawing.Size(240, 24);
-            this.txtBuscar.Font = new System.Drawing.Font("Segoe UI", 9.5F); this.txtBuscar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtBuscar.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.txtBuscar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtBuscar.BackColor = INPUT; this.txtBuscar.ForeColor = System.Drawing.Color.White;
             this.txtBuscar.TextChanged += new System.EventHandler(this.txtBuscar_TextChanged);
 
-            this.lblFiltroCategoria.Text = "CATEGORÍA:"; this.lblFiltroCategoria.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this.lblFiltroCategoria.ForeColor = System.Drawing.Color.FromArgb(150, 150, 150); this.lblFiltroCategoria.Location = new System.Drawing.Point(262, 35); this.lblFiltroCategoria.AutoSize = true;
+            this.lblFiltroCategoria.Text = "CATEGORÍA:";
+            this.lblFiltroCategoria.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblFiltroCategoria.ForeColor = System.Drawing.Color.FromArgb(150, 150, 150);
+            this.lblFiltroCategoria.Location = new System.Drawing.Point(262, 35); this.lblFiltroCategoria.AutoSize = true;
             this.cmbFiltroCategoria.Location = new System.Drawing.Point(262, 52); this.cmbFiltroCategoria.Size = new System.Drawing.Size(185, 24);
-            this.cmbFiltroCategoria.Font = new System.Drawing.Font("Segoe UI", 9.5F); this.cmbFiltroCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbFiltroCategoria.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.cmbFiltroCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFiltroCategoria.BackColor = INPUT; this.cmbFiltroCategoria.ForeColor = System.Drawing.Color.White;
             this.cmbFiltroCategoria.SelectedIndexChanged += new System.EventHandler(this.cmbFiltroCategoria_SelectedIndexChanged);
 
-            this.lblFiltroEstado.Text = "ESTADO:"; this.lblFiltroEstado.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this.lblFiltroEstado.ForeColor = System.Drawing.Color.FromArgb(150, 150, 150); this.lblFiltroEstado.Location = new System.Drawing.Point(460, 35); this.lblFiltroEstado.AutoSize = true;
+            this.lblFiltroEstado.Text = "ESTADO:";
+            this.lblFiltroEstado.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblFiltroEstado.ForeColor = System.Drawing.Color.FromArgb(150, 150, 150);
+            this.lblFiltroEstado.Location = new System.Drawing.Point(460, 35); this.lblFiltroEstado.AutoSize = true;
             this.cmbFiltroEstado.Location = new System.Drawing.Point(460, 52); this.cmbFiltroEstado.Size = new System.Drawing.Size(130, 24);
-            this.cmbFiltroEstado.Font = new System.Drawing.Font("Segoe UI", 9.5F); this.cmbFiltroEstado.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbFiltroEstado.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.cmbFiltroEstado.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFiltroEstado.BackColor = INPUT; this.cmbFiltroEstado.ForeColor = System.Drawing.Color.White;
-            this.cmbFiltroEstado.Items.AddRange(new object[] { "Todos", "Activo", "Inactivo" }); this.cmbFiltroEstado.SelectedIndex = 0;
+            this.cmbFiltroEstado.Items.AddRange(new object[] { "Todos", "Activo", "Inactivo" });
+            this.cmbFiltroEstado.SelectedIndex = 0;
             this.cmbFiltroEstado.SelectedIndexChanged += new System.EventHandler(this.cmbFiltroEstado_SelectedIndexChanged);
 
             this.lblTotal.Text = "Total: 0"; this.lblTotal.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
@@ -191,14 +215,14 @@
                 this.lblFiltroCategoria, this.cmbFiltroCategoria,
                 this.lblFiltroEstado, this.cmbFiltroEstado, this.lblTotal });
 
+            // DataGridView
             this.dgvProductos.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvProductos.ReadOnly = true; this.dgvProductos.AllowUserToAddRows = false;
             this.dgvProductos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvProductos.MultiSelect = false;
             this.dgvProductos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvProductos.BackgroundColor = System.Drawing.Color.FromArgb(22, 22, 22);
-            this.dgvProductos.RowHeadersVisible = false;
-            this.dgvProductos.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvProductos.RowHeadersVisible = false; this.dgvProductos.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgvProductos.EnableHeadersVisualStyles = false;
             this.dgvProductos.ColumnHeadersDefaultCellStyle.BackColor = ROJO;
             this.dgvProductos.ColumnHeadersDefaultCellStyle.ForeColor = System.Drawing.Color.White;
@@ -217,6 +241,7 @@
             this.panelDer.Controls.Add(this.dgvProductos);
             this.panelDer.Controls.Add(this.panelFiltros);
 
+            // Form
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(22, 22, 22);
@@ -228,6 +253,7 @@
             this.Load += new System.EventHandler(this.FrmProductos_Load);
             this.panelTitulo.ResumeLayout(false); this.panelTitulo.PerformLayout();
             this.panelIzq.ResumeLayout(false);
+            this.panelBotones.ResumeLayout(false);
             this.panelFormCard.ResumeLayout(false); this.panelFormCard.PerformLayout();
             this.panelDer.ResumeLayout(false);
             this.panelFiltros.ResumeLayout(false); this.panelFiltros.PerformLayout();

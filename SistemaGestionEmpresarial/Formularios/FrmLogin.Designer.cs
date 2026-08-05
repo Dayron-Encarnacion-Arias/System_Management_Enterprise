@@ -300,7 +300,7 @@
             this.btnSalir.Click += new System.EventHandler(this.btnSalir_Click);
 
             // Versión
-            this.lblVersion.Text = "v2.0  |  Sistema de Gestión Empresarial";
+            this.lblVersion.Text = "v3.0  |  Sistema de Gestión Empresarial";
             this.lblVersion.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.lblVersion.ForeColor = System.Drawing.Color.FromArgb(60, 60, 60);
             this.lblVersion.Location = new System.Drawing.Point(30, 356);
