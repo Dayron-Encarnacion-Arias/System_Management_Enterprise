@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using SistemaGestionEmpresarial.Formularios;
 
@@ -27,21 +27,22 @@ namespace SistemaGestionEmpresarial
                 lblFechaHora.Text = $"📅  {DateTime.Now:dddd, dd/MM/yyyy}   🕐  {DateTime.Now:HH:mm:ss}   ";
             timerReloj.Start();
 
-            // Abrir dashboard al iniciar
             AbrirFormulario(new FrmDashboard());
         }
 
         private void ConfigurarMenuPorRol()
         {
             bool esAdmin = SesionGlobal.UsuarioActual.NombreRol == "Administrador";
-            usuariosToolStripMenuItem.Visible = esAdmin;
-            bitacoraToolStripMenuItem.Visible = esAdmin;
+            usuariosToolStripMenuItem.Visible  = esAdmin;
+            rolesToolStripMenuItem.Visible     = esAdmin;
+            bitacoraToolStripMenuItem.Visible  = esAdmin;
         }
 
-        // ── MANTENIMIENTOS ────────────────────────────────────
+        // ── INICIO ────────────────────────────────────────────────
         private void dashboardToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmDashboard());
 
+        // ── MANTENIMIENTOS ────────────────────────────────────────
         private void clientesToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmClientes());
 
@@ -51,7 +52,10 @@ namespace SistemaGestionEmpresarial
         private void usuariosToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmUsuarios());
 
-        // ── REPORTES ──────────────────────────────────────────
+        private void rolesToolStripMenuItem_Click(object sender, EventArgs e)
+            => AbrirFormulario(new FrmRoles());
+
+        // ── REPORTES ──────────────────────────────────────────────
         private void reporteClientesToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmReporte("Clientes"));
 
@@ -61,7 +65,7 @@ namespace SistemaGestionEmpresarial
         private void bitacoraToolStripMenuItem_Click(object sender, EventArgs e)
             => AbrirFormulario(new FrmBitacora());
 
-        // ── VENTANA ───────────────────────────────────────────
+        // ── VENTANA ───────────────────────────────────────────────
         private void cascadaToolStripMenuItem_Click(object sender, EventArgs e)
             => this.LayoutMdi(MdiLayout.Cascade);
 
@@ -77,9 +81,9 @@ namespace SistemaGestionEmpresarial
         private void OrganizarMosaico()
         {
             int margen = 5;
-            int ancho = this.ClientSize.Width - (margen * 2);
-            int alto = 580;
-            int yPos = margen + offsetScroll;
+            int ancho  = this.ClientSize.Width - (margen * 2);
+            int alto   = 580;
+            int yPos   = margen + offsetScroll;
 
             foreach (Form hijo in this.MdiChildren)
             {
@@ -93,16 +97,16 @@ namespace SistemaGestionEmpresarial
         {
             if (this.MdiChildren.Length == 0) return;
 
-            int velocidad = 80;
+            int velocidad    = 80;
             int maximoOffset = 5;
-            int altoTotal = this.MdiChildren.Length * (580 + 5);
-            int altoVisible = this.ClientSize.Height - menuStrip1.Height - statusStrip1.Height;
+            int altoTotal    = this.MdiChildren.Length * (580 + 5);
+            int altoVisible  = this.ClientSize.Height - menuStrip1.Height - statusStrip1.Height;
             int minimoOffset = -(altoTotal - altoVisible + 10);
 
             if (altoTotal <= altoVisible) { offsetScroll = 5; OrganizarMosaico(); return; }
 
             offsetScroll += e.Delta > 0 ? velocidad : -velocidad;
-            offsetScroll = Math.Max(minimoOffset, Math.Min(maximoOffset, offsetScroll));
+            offsetScroll  = Math.Max(minimoOffset, Math.Min(maximoOffset, offsetScroll));
             OrganizarMosaico();
         }
 
@@ -111,7 +115,7 @@ namespace SistemaGestionEmpresarial
             foreach (Form f in this.MdiChildren) f.Close();
         }
 
-        // ── SESIÓN ────────────────────────────────────────────
+        // ── SESIÓN ────────────────────────────────────────────────
         private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("¿Desea cerrar sesión?", "Confirmar",
@@ -125,7 +129,7 @@ namespace SistemaGestionEmpresarial
             }
         }
 
-        // ── HELPER ───────────────────────────────────────────
+        // ── HELPER ────────────────────────────────────────────────
         private void AbrirFormulario(Form formulario)
         {
             foreach (Form f in this.MdiChildren)
@@ -138,7 +142,7 @@ namespace SistemaGestionEmpresarial
                     return;
                 }
             }
-            formulario.MdiParent = this;
+            formulario.MdiParent  = this;
             formulario.Show();
             formulario.WindowState = FormWindowState.Maximized;
         }

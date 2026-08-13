@@ -92,6 +92,13 @@
     <Compile Include="Formularios\FrmReporte.Designer.cs">
       <DependentUpon>FrmReporte.cs</DependentUpon>
     </Compile>
+    <!-- ── NUEVO: Formulario de Roles ── -->
+    <Compile Include="Formularios\FrmRoles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formularios\FrmRoles.Designer.cs">
+      <DependentUpon>FrmRoles.cs</DependentUpon>
+    </Compile>
     <Compile Include="Formularios\FrmUsuarios.cs">
       <SubType>Form</SubType>
     </Compile>
